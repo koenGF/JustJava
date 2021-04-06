@@ -1,7 +1,11 @@
 package com.example.justjava;
 
+import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.view.View;
+import android.widget.CheckBox;
+import android.widget.EditText;
 import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -24,9 +28,15 @@ public class MainActivity extends AppCompatActivity {
      * This method is called when the order button is clicked.
      */
     public void submitOrder(View view) {
-        int price = calculatePrice();
-        String orderSummary = createOrderSummary(price);
-        displayMessage(orderSummary);
+        EditText nameField = (EditText) findViewById(R.id.order_name);
+        String name = nameField.getText().toString();
+        CheckBox whippedCreamCheckBox = (CheckBox) findViewById(R.id.whipped_cream_checkbox);
+        CheckBox chocolateCheckBox = (CheckBox) findViewById(R.id.chocolate_checkbox);
+        boolean hasChocolate = chocolateCheckBox.isChecked();
+        boolean hasWhippedCream = whippedCreamCheckBox.isChecked();
+        int price = calculatePrice(hasChocolate, hasWhippedCream);
+        String orderSummary = createOrderSummary(name, price, hasWhippedCream, hasChocolate);
+        composeEmail(orderSummary);
     }
 
     /**
@@ -34,30 +44,50 @@ public class MainActivity extends AppCompatActivity {
      *
      * @return total price
      */
-    private int calculatePrice() {
-        int price = quantity * 5;
-        return price;
+    private int calculatePrice(boolean chocolate, boolean cream) {
+        int pricePerCup = 5;
+        if (chocolate) {
+            pricePerCup += 2;
+        }
+        if (cream) {
+            pricePerCup += 1;
+        }
+        return quantity * pricePerCup;
     }
 
     /**
      * creates an order summary
      *
      * @param price
+     * @param hasCream
+     * @param hasChoco
      * @return order summary
      */
-    private String createOrderSummary(int price) {
-        return "name: Kaptain Kunal\n" +
+    private String createOrderSummary(String name, int price, boolean hasCream, boolean hasChoco) {
+        return "name: " + name + "\n" +
                 "Quantity: " + quantity + "\n" +
+                "cream: " + hasCream + "\n" +
+                "chocolate: " + hasChoco + "\n" +
                 "Total: $" + price + "\n" +
                 "Thank you!";
     }
 
     /**
-     * This method displays the given text on the screen.
+     * compose an email containing order information.
+     *
+     *
      */
-    private void displayMessage(String message) {
-        TextView orderSummaryTextView = (TextView) findViewById(R.id.order_summary_text_view);
-        orderSummaryTextView.setText(message);
+    private void composeEmail(String summary) {
+        Intent intent = new Intent(Intent.ACTION_SENDTO);
+        intent.setData(Uri.parse("mailto:"));
+        intent.setType("text/plain");
+        intent.putExtra(Intent.EXTRA_EMAIL, "example@gmail.com");
+        intent.putExtra(Intent.EXTRA_SUBJECT, "new order");
+        intent.putExtra(Intent.EXTRA_TEXT, summary);
+        if (intent.resolveActivity(getPackageManager()) != null) {
+            startActivity(intent);
+        }
+
     }
 
     /**
@@ -69,12 +99,14 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void increment(View view) {
-        quantity++;
+        if (quantity < 100) {
+            quantity++;
+        }
         displayQuantity(quantity);
     }
 
     public void decrement(View view) {
-        if (quantity != 0) {
+        if (quantity > 0) {
             quantity--;
         }
         displayQuantity(quantity);
