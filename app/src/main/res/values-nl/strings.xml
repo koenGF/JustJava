@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Just Java</string>
+    <string name="name">Naam</string>
+    <string name="whipped_cream">Slagroom</string>
+    <string name="chocolate">Chocolade</string>
+    <string name="quantity">Hoeveelheid</string>
+    <string name="order">Bestel</string>
+    <string name="total">Totaal</string>
+    <string name="thank_you">Dankuwel</string>
+</resources>

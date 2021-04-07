@@ -1,12 +1,15 @@
 package com.example.justjava;
 
+import android.content.ActivityNotFoundException;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -28,15 +31,21 @@ public class MainActivity extends AppCompatActivity {
      * This method is called when the order button is clicked.
      */
     public void submitOrder(View view) {
+        //name
         EditText nameField = (EditText) findViewById(R.id.order_name);
         String name = nameField.getText().toString();
+
+        //cream
         CheckBox whippedCreamCheckBox = (CheckBox) findViewById(R.id.whipped_cream_checkbox);
+        boolean hasWhippedCream = whippedCreamCheckBox.isChecked();
+
+        //chocolate
         CheckBox chocolateCheckBox = (CheckBox) findViewById(R.id.chocolate_checkbox);
         boolean hasChocolate = chocolateCheckBox.isChecked();
-        boolean hasWhippedCream = whippedCreamCheckBox.isChecked();
+
         int price = calculatePrice(hasChocolate, hasWhippedCream);
         String orderSummary = createOrderSummary(name, price, hasWhippedCream, hasChocolate);
-        composeEmail(orderSummary);
+        composeEmail(orderSummary, name);
     }
 
     /**
@@ -60,16 +69,16 @@ public class MainActivity extends AppCompatActivity {
      *
      * @param price
      * @param hasCream
-     * @param hasChoco
+     * @param hasChocolate
      * @return order summary
      */
-    private String createOrderSummary(String name, int price, boolean hasCream, boolean hasChoco) {
-        return "name: " + name + "\n" +
-                "Quantity: " + quantity + "\n" +
-                "cream: " + hasCream + "\n" +
-                "chocolate: " + hasChoco + "\n" +
-                "Total: $" + price + "\n" +
-                "Thank you!";
+    private String createOrderSummary(String name, int price, boolean hasCream, boolean hasChocolate) {
+        return getString(R.string.name) + ": " + name + "\n" +
+                getString(R.string.quantity) + ": " + quantity + "\n" +
+                getString(R.string.whipped_cream) + ": " + hasCream + "\n" +
+                getString(R.string.chocolate) +": " + hasChocolate + "\n" +
+                getString(R.string.total) + ": $" + price + "\n" +
+                getString(R.string.thank_you) + "!";
     }
 
     /**
@@ -77,17 +86,17 @@ public class MainActivity extends AppCompatActivity {
      *
      *
      */
-    private void composeEmail(String summary) {
+    private void composeEmail(String summary, String name) {
         Intent intent = new Intent(Intent.ACTION_SENDTO);
         intent.setData(Uri.parse("mailto:"));
-        intent.setType("text/plain");
         intent.putExtra(Intent.EXTRA_EMAIL, "example@gmail.com");
-        intent.putExtra(Intent.EXTRA_SUBJECT, "new order");
+        intent.putExtra(Intent.EXTRA_SUBJECT, "new order for " + name);
         intent.putExtra(Intent.EXTRA_TEXT, summary);
-        if (intent.resolveActivity(getPackageManager()) != null) {
+        try {
             startActivity(intent);
+        } catch (Exception e) {
+            Log.e("tag", "composeEmail failed");
         }
-
     }
 
     /**
